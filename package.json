@@ -1,0 +1,25 @@
+{
+  "name": "search-engine-tool",
+  "version": "1.0.4",
+  "description": "可能是免费中最好用的搜索引擎API工具",
+  "main": "searchEngineTool.js",
+  "bin": {
+    "search-engine-tool": "./searchEngineTool.js"
+  },
+  "keywords": [
+    "search",
+    "engine",
+    "tool"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "mcp": "node node-mcp-adapter.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "jest": "^29.5.0",
+    "puppeteer": "^20.7.3"
+  }
+}
