@@ -60,9 +60,9 @@ class TalorDataProvider:
             httpx.HTTPError: 网络请求失败时抛出
         """
         # TalorData 目前不支持 search_depth 参数，但保留接口兼容性
-        # 根据文档，TalorData 使用 engine 参数而不是 url 参数
+        # 根据官方 Python 示例，使用 url 参数
         params = {
-            "engine": "google",  # 指定搜索引擎
+            "url": "https://www.google.com/search",
             "q": query,
             "json": "1",
         }
