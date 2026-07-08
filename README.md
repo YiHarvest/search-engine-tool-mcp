@@ -4,7 +4,7 @@ A Python MCP (Model Context Protocol) Server for web search and extraction with 
 
 ## Version
 
-Current version: **0.4.1**
+Current version: **0.4.2**
 
 ## Features
 
@@ -18,19 +18,19 @@ Current version: **0.4.1**
 
 ### From PyPI (Recommended)
 
-✅ **Latest version 0.4.1 is now available on PyPI!**
+✅ **Latest version 0.4.2 is now available on PyPI!**
 
-**PyPI Package Page:** https://pypi.org/project/search-engine-tool-mcp/0.4.1/
+**PyPI Package Page:** https://pypi.org/project/search-engine-tool-mcp/0.4.2/
 
 ```bash
 # Using pip
-pip install search-engine-tool-mcp==0.4.1
+pip install search-engine-tool-mcp==0.4.2
 
 # Or using uv (recommended)
-uv pip install search-engine-tool-mcp==0.4.1
+uv pip install search-engine-tool-mcp==0.4.2
 
 # Or using uvx (no installation required)
-uvx --from search-engine-tool-mcp==0.4.1 search-engine-tool-mcp
+uvx --from search-engine-tool-mcp==0.4.2 search-engine-tool-mcp
 ```
 
 ### From Source
@@ -116,7 +116,7 @@ Add to your MCP client configuration (e.g., Claude Desktop, Cursor, or other MCP
       "command": "uvx",
       "args": [
         "--from",
-        "search-engine-tool-mcp==0.4.1",
+        "search-engine-tool-mcp==0.4.2",
         "search-engine-tool-mcp"
       ],
       "env": {
