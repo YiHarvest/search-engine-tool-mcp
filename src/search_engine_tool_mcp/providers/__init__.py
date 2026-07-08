@@ -1,4 +1,4 @@
-"""Search providers for You.com and Tavily."""
+"""搜索提供者：You.com、Tavily 和本地提取"""
 
 from .you import YouProvider
 from .tavily import TavilyProvider

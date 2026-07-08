@@ -1,4 +1,4 @@
-"""Tavily provider for search and extraction."""
+"""Tavily 搜索和提取提供者"""
 
 from typing import List, Optional
 import os
@@ -7,17 +7,17 @@ from ..schemas import SearchResult, ExtractResult
 
 
 class TavilyProvider:
-    """Tavily provider implementation (requires TAVILY_API_KEY)."""
+    """Tavily 提供者实现（需要 TAVILY_API_KEY）"""
 
     def __init__(self, api_key: Optional[str] = None):
         """
-        Initialize Tavily provider.
+        初始化 Tavily 提供者。
 
-        Args:
-            api_key: Tavily API key. If not provided, reads from TAVILY_API_KEY env var.
+        参数:
+            api_key: Tavily API Key。如果未提供，从 TAVILY_API_KEY 环境变量读取。
 
-        Raises:
-            ValueError: If API key is not provided and not found in environment
+        异常:
+            ValueError: 如果未提供 API Key 且环境中未找到
         """
         self.api_key = api_key or os.getenv("TAVILY_API_KEY")
         if not self.api_key:
@@ -32,19 +32,19 @@ class TavilyProvider:
         query: str,
         max_results: int = 5,
         search_depth: str = "basic",
-        include_answer: bool = False
+        include_answer: bool = False,
     ) -> List[SearchResult]:
         """
-        Search using Tavily API.
+        使用 Tavily API 进行搜索。
 
-        Args:
-            query: Search query string
-            max_results: Maximum number of results to return
-            search_depth: Search depth (basic/advanced)
-            include_answer: Whether to include AI-generated answer
+        参数:
+            query: 搜索查询字符串
+            max_results: 返回结果的最大数量
+            search_depth: 搜索深度（basic/advanced）
+            include_answer: 是否包含 AI 生成的答案
 
-        Returns:
-            List of SearchResult objects
+        返回:
+            SearchResult 对象列表
         """
         url = f"{self.base_url}/search"
 
@@ -53,7 +53,7 @@ class TavilyProvider:
             "query": query,
             "max_results": max_results,
             "search_depth": search_depth,
-            "include_answer": include_answer
+            "include_answer": include_answer,
         }
 
         async with httpx.AsyncClient() as client:
@@ -64,31 +64,30 @@ class TavilyProvider:
 
                 results = []
                 for item in data.get("results", []):
-                    results.append(SearchResult(
-                        href=item.get("url", ""),
-                        title=item.get("title", ""),
-                        abstract=item.get("content", "")
-                    ))
+                    results.append(
+                        SearchResult(
+                            href=item.get("url", ""),
+                            title=item.get("title", ""),
+                            abstract=item.get("content", ""),
+                        )
+                    )
                 return results
             except Exception as e:
                 raise RuntimeError(f"Tavily search failed: {str(e)}")
 
     async def extract(self, url: str) -> ExtractResult:
         """
-        Extract content from a URL using Tavily Extract API.
+        使用 Tavily Extract API 从 URL 提取内容。
 
-        Args:
-            url: URL to extract content from
+        参数:
+            url: 要提取内容的 URL
 
-        Returns:
-            ExtractResult object
+        返回:
+            ExtractResult 对象
         """
         extract_url = f"{self.base_url}/extract"
 
-        payload = {
-            "api_key": self.api_key,
-            "urls": [url]
-        }
+        payload = {"api_key": self.api_key, "urls": [url]}
 
         async with httpx.AsyncClient() as client:
             try:
@@ -102,10 +101,6 @@ class TavilyProvider:
                 else:
                     content = ""
 
-                return ExtractResult(
-                    url=url,
-                    content=content,
-                    provider="tavily"
-                )
+                return ExtractResult(url=url, content=content, provider="tavily")
             except Exception as e:
                 raise RuntimeError(f"Tavily extraction failed: {str(e)}")

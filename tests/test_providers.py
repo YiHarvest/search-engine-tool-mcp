@@ -26,7 +26,7 @@ class TestYouProvider:
     def test_init_without_api_key_raises(self, monkeypatch):
         """Test You.com provider raises error without API key."""
         monkeypatch.delenv("YDC_API_KEY", raising=False)
-        
+
         with pytest.raises(ValueError, match="YDC_API_KEY is required"):
             YouProvider()
 
@@ -42,7 +42,7 @@ class TestYouProvider:
                     {
                         "url": "https://example.com",
                         "title": "Example Title",
-                        "description": "Example description"
+                        "description": "Example description",
                     }
                 ]
             }
@@ -88,7 +88,9 @@ class TestYouProvider:
         monkeypatch.setenv("YDC_API_KEY", "test-key")
         provider = YouProvider()
 
-        with pytest.raises(NotImplementedError, match="does not support URL extraction"):
+        with pytest.raises(
+            NotImplementedError, match="does not support URL extraction"
+        ):
             await provider.extract("https://example.com")
 
 
@@ -124,7 +126,7 @@ class TestTavilyProvider:
                 {
                     "url": "https://example.com",
                     "title": "Example Title",
-                    "content": "Example content"
+                    "content": "Example content",
                 }
             ]
         }
@@ -151,13 +153,7 @@ class TestTavilyProvider:
         monkeypatch.setenv("TAVILY_API_KEY", "test-key")
         provider = TavilyProvider()
 
-        mock_response_data = {
-            "results": [
-                {
-                    "raw_content": "Extracted content here"
-                }
-            ]
-        }
+        mock_response_data = {"results": [{"raw_content": "Extracted content here"}]}
 
         with patch("httpx.AsyncClient") as MockClient:
             mock_client = MagicMock()

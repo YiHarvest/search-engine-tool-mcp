@@ -19,7 +19,11 @@ Current version: **0.2.0**
 ### From PyPI (Recommended)
 
 ```bash
+# Using pip
 pip install search-engine-tool-mcp
+
+# Or using uv (recommended)
+uv pip install search-engine-tool-mcp
 ```
 
 ### From Source
@@ -27,6 +31,11 @@ pip install search-engine-tool-mcp
 ```bash
 git clone https://github.com/YiHarvest/search-engine-tool.git
 cd search-engine-tool
+
+# Using uv (recommended)
+uv sync
+
+# Or using pip
 pip install -e .
 ```
 
@@ -166,30 +175,43 @@ Extract content from a specific URL.
 git clone https://github.com/YiHarvest/search-engine-tool.git
 cd search-engine-tool
 
-# Create virtual environment
+# Using uv (recommended)
+uv sync --all-extras
+
+# Or using pip
 python -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-
-# Install in development mode
 pip install -e ".[dev]"
 ```
 
 ### Run Tests
 
 ```bash
-python -m pytest
+# Using uv
+uv run pytest
+
+# Or using pytest directly
+pytest
 ```
 
 ### Build Package
 
 ```bash
+# Using uv (recommended)
+uv build
+
+# Or using build directly
 python -m build
 ```
 
 ### Check Package
 
 ```bash
-python -m twine check dist/*
+# Using uv
+uv run twine check dist/*
+
+# Or using twine directly
+twine check dist/*
 ```
 
 ## API Reference
@@ -227,26 +249,9 @@ search-engine-tool/
 │   ├── test_search.py
 │   └── test_providers.py
 │   └── test_extract.py
-├── legacy/                # Node.js implementation (v1.x)
 ├── pyproject.toml
 └── README.md
 ```
-
-## Legacy (Node.js Version)
-
-The original Node.js implementation is preserved in the `legacy/` directory. Key differences:
-
-- **Node.js v1.x**: Used MCP adapter pattern with configuration file
-- **Python v0.2.0**: Native MCP server implementation
-
-To use the legacy version:
-
-```bash
-cd legacy
-npm install
-npm run mcp
-```
-
 ## License
 
 MIT License

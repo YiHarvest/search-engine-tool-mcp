@@ -35,7 +35,6 @@ env/
 .coverage
 htmlcov/
 docs/
-legacy/
 
 # IDEs
 .vscode/
@@ -52,3 +51,6 @@ legacy/
 dist/
 build/
 *.whl
+
+# uv
+uv.lock

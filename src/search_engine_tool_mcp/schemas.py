@@ -1,46 +1,46 @@
-"""Data schemas for search engine tool."""
+"""搜索引擎工具的数据模型"""
 
-from typing import List, Optional
+from typing import List
 from pydantic import BaseModel, Field
 
 
 class SearchResult(BaseModel):
-    """Single search result item."""
+    """单个搜索结果项"""
 
-    href: str = Field(..., description="URL of the search result")
-    title: str = Field(..., description="Title of the search result")
-    abstract: str = Field(default="", description="Snippet or summary of the search result")
+    href: str = Field(..., description="搜索结果的 URL")
+    title: str = Field(..., description="搜索结果的标题")
+    abstract: str = Field(default="", description="搜索结果的摘要或简介")
 
 
 class SearchResponse(BaseModel):
-    """Search API response."""
+    """搜索 API 响应"""
 
-    query: str = Field(..., description="Original search query")
-    provider: str = Field(..., description="Provider used (jina/tavily)")
-    count: int = Field(..., description="Number of results returned")
-    results: List[SearchResult] = Field(default_factory=list, description="Search results")
+    query: str = Field(..., description="原始搜索查询")
+    provider: str = Field(..., description="使用的提供者（you/tavily）")
+    count: int = Field(..., description="返回结果的数量")
+    results: List[SearchResult] = Field(default_factory=list, description="搜索结果")
 
 
 class ExtractResult(BaseModel):
-    """Single extraction result."""
+    """单个提取结果"""
 
-    url: str = Field(..., description="URL of the extracted content")
-    content: str = Field(..., description="Extracted content")
-    provider: str = Field(..., description="Provider used (jina/tavily)")
+    url: str = Field(..., description="提取内容的 URL")
+    content: str = Field(..., description="提取的内容")
+    provider: str = Field(..., description="使用的提供者（local/tavily）")
 
 
 class WebSearchParams(BaseModel):
-    """Parameters for web_search tool."""
+    """web_search 工具的参数"""
 
-    query: str = Field(..., description="Search query string")
-    provider: str = Field(default="auto", description="Provider: auto/jina/tavily")
-    max_results: int = Field(default=5, ge=1, le=20, description="Maximum number of results")
-    search_depth: str = Field(default="basic", description="Search depth: basic/advanced")
-    include_answer: bool = Field(default=False, description="Include AI-generated answer")
+    query: str = Field(..., description="搜索查询字符串")
+    provider: str = Field(default="auto", description="提供者: auto/you/tavily")
+    max_results: int = Field(default=5, ge=1, le=20, description="最大结果数量")
+    search_depth: str = Field(default="basic", description="搜索深度: basic/advanced")
+    include_answer: bool = Field(default=False, description="包含 AI 生成的答案")
 
 
 class WebExtractParams(BaseModel):
-    """Parameters for web_extract tool."""
+    """web_extract 工具的参数"""
 
-    url: str = Field(..., description="URL to extract content from")
-    provider: str = Field(default="auto", description="Provider: auto/jina/tavily")
+    url: str = Field(..., description="要提取内容的 URL")
+    provider: str = Field(default="auto", description="提供者: auto/local/tavily")

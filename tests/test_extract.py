@@ -165,13 +165,7 @@ class TestTavilyExtract:
         """Test successful Tavily extraction."""
         monkeypatch.setenv("TAVILY_API_KEY", "test-key")
 
-        mock_response_data = {
-            "results": [
-                {
-                    "raw_content": "Tavily extracted content"
-                }
-            ]
-        }
+        mock_response_data = {"results": [{"raw_content": "Tavily extracted content"}]}
 
         with patch("httpx.AsyncClient") as MockClient:
             mock_client = MagicMock()
@@ -200,15 +194,13 @@ class TestAutoFallback:
         # Mock local extraction to fail
         with patch("search_engine_tool_mcp.extract.LocalExtractProvider") as MockLocal:
             local_instance = MockLocal.return_value
-            local_instance.extract = AsyncMock(side_effect=RuntimeError("Local extraction failed"))
+            local_instance.extract = AsyncMock(
+                side_effect=RuntimeError("Local extraction failed")
+            )
 
             # Mock Tavily extraction to succeed
             mock_response_data = {
-                "results": [
-                    {
-                        "raw_content": "Tavily fallback content"
-                    }
-                ]
+                "results": [{"raw_content": "Tavily fallback content"}]
             }
 
             with patch("httpx.AsyncClient") as MockClient:
@@ -233,7 +225,9 @@ class TestAutoFallback:
         # Mock local extraction to fail
         with patch("search_engine_tool_mcp.extract.LocalExtractProvider") as MockLocal:
             local_instance = MockLocal.return_value
-            local_instance.extract = AsyncMock(side_effect=RuntimeError("Local extraction failed"))
+            local_instance.extract = AsyncMock(
+                side_effect=RuntimeError("Local extraction failed")
+            )
 
             with pytest.raises(RuntimeError, match="no Tavily fallback available"):
                 await web_extract("https://example.com", provider="auto")

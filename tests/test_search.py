@@ -1,6 +1,5 @@
 """Tests for web_search functionality."""
 
-import os
 import pytest
 from unittest.mock import AsyncMock, patch
 from search_engine_tool_mcp.search import web_search, _resolve_provider
@@ -45,8 +44,10 @@ class TestResolveProvider:
         """Test auto provider without any API keys raises error."""
         monkeypatch.delenv("YDC_API_KEY", raising=False)
         monkeypatch.delenv("TAVILY_API_KEY", raising=False)
-        
-        with pytest.raises(ValueError, match="Either YDC_API_KEY or TAVILY_API_KEY is required"):
+
+        with pytest.raises(
+            ValueError, match="Either YDC_API_KEY or TAVILY_API_KEY is required"
+        ):
             _resolve_provider("auto")
 
     def test_resolve_invalid_provider(self):
@@ -62,24 +63,25 @@ class TestWebSearch:
     async def test_search_with_you(self, monkeypatch):
         """Test search with explicit you provider."""
         monkeypatch.setenv("YDC_API_KEY", "test-you-key")
-        
+
         mock_results = [
             {
                 "href": "https://example.com",
                 "title": "Example",
-                "abstract": "Example result"
+                "abstract": "Example result",
             }
         ]
 
         with patch("search_engine_tool_mcp.search.YouProvider") as MockYou:
             you_instance = MockYou.return_value
-            you_instance.search = AsyncMock(return_value=[
-                SearchResult(
-                    href=r["href"],
-                    title=r["title"],
-                    abstract=r["abstract"]
-                ) for r in mock_results
-            ])
+            you_instance.search = AsyncMock(
+                return_value=[
+                    SearchResult(
+                        href=r["href"], title=r["title"], abstract=r["abstract"]
+                    )
+                    for r in mock_results
+                ]
+            )
 
             result = await web_search("test query", provider="you")
 
@@ -93,7 +95,9 @@ class TestWebSearch:
         monkeypatch.delenv("YDC_API_KEY", raising=False)
         monkeypatch.delenv("TAVILY_API_KEY", raising=False)
 
-        with pytest.raises(ValueError, match="Either YDC_API_KEY or TAVILY_API_KEY is required"):
+        with pytest.raises(
+            ValueError, match="Either YDC_API_KEY or TAVILY_API_KEY is required"
+        ):
             await web_search("test query", provider="auto")
 
     @pytest.mark.asyncio
@@ -116,7 +120,7 @@ class TestWebSearch:
     async def test_search_with_max_results(self, monkeypatch):
         """Test search with custom max_results."""
         monkeypatch.setenv("YDC_API_KEY", "test-you-key")
-        
+
         with patch("search_engine_tool_mcp.search.YouProvider") as MockYou:
             you_instance = MockYou.return_value
             you_instance.search = AsyncMock(return_value=[])
