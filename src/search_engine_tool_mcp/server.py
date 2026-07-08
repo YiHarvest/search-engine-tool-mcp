@@ -42,19 +42,25 @@ async def web_search(
     include_answer: bool = False,
 ) -> dict:
     """
-    使用多个提供者（SearXNG/You.com/Tavily）搜索网络信息。
+    使用多个提供者（TalorData/SearXNG/You.com/Tavily）搜索网络信息。
 
     参数:
         query: 搜索查询字符串
-        provider: 使用的提供者：auto（默认）、searxng（免费，需要 SEARXNG_BASE_URL）、you（需要 YDC_API_KEY）或 tavily（需要 TAVILY_API_KEY）
+        provider: 使用的提供者：auto（默认）、talordata（推荐）、searxng（免费，需要 SEARXNG_BASE_URL）、you（需要 YDC_API_KEY）或 tavily（需要 TAVILY_API_KEY）
         max_results: 返回结果的最大数量（1-20）
-        search_depth: 搜索深度（仅 Tavily）：basic 或 advanced
-        include_answer: 包含 AI 生成的答案（仅 Tavily）
+        search_depth: 搜索深度（仅 Tavily 支持）：basic 或 advanced
+        include_answer: 包含 AI 生成的答案（仅 TalorData 和 Tavily 支持）
 
-    Auto 优先级: SearXNG（免费）> Tavily > You.com
+    Auto 优先级: TalorData（默认）→ SearXNG → You.com → Tavily
+
+    提供者特性:
+        - talordata: 支持 include_answer（AI overview），返回可选字段（position/source/display_link）
+        - searxng: 免费，自托管，支持多引擎聚合
+        - you: You.com API
+        - tavily: 支持 search_depth 和 include_answer
 
     返回:
-        包含查询、提供者、计数和结果列表的搜索结果
+        包含查询、提供者、计数和结果列表的搜索结果（可能包含 answer 字段）
     """
     params = WebSearchParams(
         query=query,
