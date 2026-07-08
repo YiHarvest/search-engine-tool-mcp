@@ -39,7 +39,7 @@ async def web_search(
     if actual_provider == "talordata":
         try:
             talordata = TalorDataProvider()
-            results, answer = await talordata.search(query, max_results, include_answer)
+            results, answer = await talordata.search(query, max_results, search_depth, include_answer)
 
             # 如果 talordata 返回空结果且 provider=auto，fallback 到其他 provider
             if provider == "auto" and len(results) == 0:

@@ -2,36 +2,40 @@
 
 import pytest
 import os
+import httpx
 from unittest.mock import AsyncMock, patch, MagicMock
 from search_engine_tool_mcp.providers.talordata import TalorDataProvider
+from search_engine_tool_mcp.schemas import SearchResult
 
 
 @pytest.mark.asyncio
 async def test_talordata_organic_field_mapping():
     """测试 organic 字段映射"""
     mock_response_data = {
-        "search_metadata": {"status": "Success"},
-        "organic": [
-            {
-                "link": "https://example.com/1",
-                "title": "Example 1",
-                "description": "Description 1",
-                "position": 1,
-                "source": "Example Source",
-                "display_link": "example.com",
-            },
-            {
-                "link": "https://example.com/2",
-                "title": "Example 2",
-                "snippet": "Snippet 2",
-                "position": 2,
-            },
-        ],
+        "code": 0,
+        "data": {
+            "search_metadata": {"status": "Success"},
+            "organic": [
+                {
+                    "link": "https://example.com/1",
+                    "title": "Example 1",
+                    "description": "Description 1",
+                    "position": 1,
+                    "source": "Example Source",
+                    "display_link": "example.com",
+                },
+                {
+                    "link": "https://example.com/2",
+                    "title": "Example 2",
+                    "snippet": "Snippet 2",
+                    "position": 2,
+                },
+            ],
+        },
     }
 
     provider = TalorDataProvider(api_key="test_key")
 
-    # Mock httpx.AsyncClient.post method
     mock_response = MagicMock()
     mock_response.json.return_value = mock_response_data
     mock_response.raise_for_status = MagicMock()
@@ -43,9 +47,7 @@ async def test_talordata_organic_field_mapping():
         mock_client.__aexit__ = AsyncMock(return_value=None)
         mock_client_class.return_value = mock_client
 
-        results, answer = await provider.search(
-            "test query", max_results=2, search_depth="basic"
-        )
+        results, answer = await provider.search("test query", max_results=2, search_depth="basic")
 
         assert len(results) == 2
         assert results[0].href == "https://example.com/1"
@@ -65,15 +67,20 @@ async def test_talordata_organic_field_mapping():
 async def test_talordata_ai_overview_mapping():
     """测试 ai_overview 映射到 answer"""
     mock_response_data = {
-        "search_metadata": {"status": "Success"},
-        "organic": [
-            {
-                "link": "https://example.com",
-                "title": "Example",
-                "description": "Description",
-            }
-        ],
-        "ai_overview": {"content": "AI generated answer for the query"},
+        "code": 0,
+        "data": {
+            "search_metadata": {"status": "Success"},
+            "organic": [
+                {
+                    "link": "https://example.com",
+                    "title": "Example",
+                    "description": "Description",
+                }
+            ],
+            "ai_overview": {
+                "content": "AI generated answer for the query"
+            },
+        },
     }
 
     provider = TalorDataProvider(api_key="test_key")
@@ -89,9 +96,7 @@ async def test_talordata_ai_overview_mapping():
         mock_client.__aexit__ = AsyncMock(return_value=None)
         mock_client_class.return_value = mock_client
 
-        results, answer = await provider.search(
-            "test query", search_depth="basic", include_answer=True
-        )
+        results, answer = await provider.search("test query", search_depth="basic", include_answer=True)
 
         assert answer == "AI generated answer for the query"
 
@@ -113,8 +118,11 @@ async def test_talordata_missing_api_key():
 async def test_talordata_empty_organic():
     """测试 organic 为空时返回空列表"""
     mock_response_data = {
-        "search_metadata": {"status": "Success"},
-        "organic": [],
+        "code": 0,
+        "data": {
+            "search_metadata": {"status": "Success"},
+            "organic": [],
+        },
     }
 
     provider = TalorDataProvider(api_key="test_key")
@@ -140,8 +148,11 @@ async def test_talordata_empty_organic():
 async def test_talordata_status_not_success():
     """测试 status 不是 Success 时返回明确错误"""
     mock_response_data = {
-        "search_metadata": {"status": "Error"},
-        "organic": [],
+        "code": 0,
+        "data": {
+            "search_metadata": {"status": "Error"},
+            "organic": [],
+        },
     }
 
     provider = TalorDataProvider(api_key="test_key")
@@ -198,14 +209,17 @@ async def test_talordata_with_base_url_override():
 async def test_talordata_description_fallback_to_snippet():
     """测试 description 缺失时使用 snippet"""
     mock_response_data = {
-        "search_metadata": {"status": "Success"},
-        "organic": [
-            {
-                "link": "https://example.com",
-                "title": "Example",
-                "snippet": "Snippet text",
-            }
-        ],
+        "code": 0,
+        "data": {
+            "search_metadata": {"status": "Success"},
+            "organic": [
+                {
+                    "link": "https://example.com",
+                    "title": "Example",
+                    "snippet": "Snippet text",
+                }
+            ],
+        },
     }
 
     provider = TalorDataProvider(api_key="test_key")
@@ -230,15 +244,20 @@ async def test_talordata_description_fallback_to_snippet():
 async def test_talordata_no_answer_when_include_answer_false():
     """测试 include_answer=False 时不提取 ai_overview"""
     mock_response_data = {
-        "search_metadata": {"status": "Success"},
-        "organic": [
-            {
-                "link": "https://example.com",
-                "title": "Example",
-                "description": "Description",
-            }
-        ],
-        "ai_overview": {"content": "AI answer"},
+        "code": 0,
+        "data": {
+            "search_metadata": {"status": "Success"},
+            "organic": [
+                {
+                    "link": "https://example.com",
+                    "title": "Example",
+                    "description": "Description",
+                }
+            ],
+            "ai_overview": {
+                "content": "AI answer"
+            },
+        },
     }
 
     provider = TalorDataProvider(api_key="test_key")
@@ -254,6 +273,6 @@ async def test_talordata_no_answer_when_include_answer_false():
         mock_client.__aexit__ = AsyncMock(return_value=None)
         mock_client_class.return_value = mock_client
 
-        results, answer = await provider.search("test query", include_answer=False)
+        results, answer = await provider.search("test query", search_depth="basic", include_answer=False)
 
         assert answer is None
