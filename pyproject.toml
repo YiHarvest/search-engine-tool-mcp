@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "search-engine-tool-mcp"
+version = "0.2.0"
+description = "A Python MCP Server for web search and extraction with Jina and Tavily providers"
+readme = "README.md"
+license = "MIT"
+authors = [
+    {name = "Search Engine Tool Contributors"}
+]
+keywords = ["mcp", "search", "web", "extraction", "jina", "tavily"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "mcp>=1.0.0,<2",
+    "httpx[socks]>=0.27.0",
+    "pydantic>=2.0.0",
+    "python-dotenv>=1.0.0",
+    "trafilatura>=1.12",
+    "beautifulsoup4>=4.12",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "build>=0.10.0",
+    "twine>=4.0.0",
+]
+
+[project.scripts]
+search-engine-tool-mcp = "search_engine_tool_mcp.server:run"
+
+[project.urls]
+Homepage = "https://github.com/YiHarvest/search-engine-tool-mcp"
+Documentation = "https://github.com/YiHarvest/search-engine-tool-mcp#readme"
+Repository = "https://github.com/YiHarvest/search-engine-tool-mcp"
+Issues = "https://github.com/YiHarvest/search-engine-tool-mcp/issues"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
