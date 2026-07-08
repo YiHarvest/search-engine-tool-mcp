@@ -19,8 +19,19 @@
 
 ### 从 PyPI 安装（推荐）
 
+✅ **最新版本 0.4.1 已发布到 PyPI！**
+
+**PyPI 包页面：** https://pypi.org/project/search-engine-tool-mcp/0.4.1/
+
 ```bash
-pip install search-engine-tool-mcp
+# 使用 pip 安装
+pip install search-engine-tool-mcp==0.4.1
+
+# 或使用 uv 安装（推荐）
+uv pip install search-engine-tool-mcp==0.4.1
+
+# 或使用 uvx 直接运行（无需安装）
+uvx --from search-engine-tool-mcp==0.4.1 search-engine-tool-mcp
 ```
 
 ### 从源码安装

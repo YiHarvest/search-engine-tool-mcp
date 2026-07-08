@@ -18,12 +18,19 @@ Current version: **0.4.1**
 
 ### From PyPI (Recommended)
 
+✅ **Latest version 0.4.1 is now available on PyPI!**
+
+**PyPI Package Page:** https://pypi.org/project/search-engine-tool-mcp/0.4.1/
+
 ```bash
 # Using pip
-pip install search-engine-tool-mcp
+pip install search-engine-tool-mcp==0.4.1
 
 # Or using uv (recommended)
-uv pip install search-engine-tool-mcp
+uv pip install search-engine-tool-mcp==0.4.1
+
+# Or using uvx (no installation required)
+uvx --from search-engine-tool-mcp==0.4.1 search-engine-tool-mcp
 ```
 
 ### From Source
