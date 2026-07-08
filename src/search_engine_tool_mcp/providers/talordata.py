@@ -33,7 +33,7 @@ class TalorDataProvider:
             )
 
         self.base_url = base_url or os.getenv(
-            "TALORDATA_BASE_URL", "https://serpapi.talordata.net/request"
+            "TALORDATA_BASE_URL", "https://serpapi.talordata.net/serp/v1/request"
         )
 
     async def search(
@@ -59,10 +59,9 @@ class TalorDataProvider:
             ValueError: API 请求失败或状态不成功时抛出
             httpx.HTTPError: 网络请求失败时抛出
         """
-        # TalorData 目前不支持 search_depth 参数，但保留接口兼容性
-        # 根据文档，TalorData 使用 engine 参数而不是 url 参数
+        # TalorData 使用 engine 参数，json=1 返回结构化数据
         params = {
-            "engine": "google",  # 指定搜索引擎
+            "engine": "google",
             "q": query,
             "json": "1",
         }
@@ -81,7 +80,7 @@ class TalorDataProvider:
                     self.base_url, data=params, headers=headers
                 )
                 response.raise_for_status()
-                data = response.json()
+                full_data = response.json()
         except httpx.TimeoutException:
             raise ValueError(f"TalorData API request timeout after {timeout} seconds")
         except httpx.HTTPStatusError as e:
@@ -91,7 +90,18 @@ class TalorDataProvider:
         except Exception as e:
             raise ValueError(f"TalorData API request failed: {str(e)}")
 
-        # 检查状态
+        # TalorData API 响应格式（json=1）: { code: 0, data: { organic: [...], ai_overview: {...} } }
+        # 检查响应状态码
+        if full_data.get("code", 0) != 0:
+            raise ValueError(f"TalorData API returned error code: {full_data.get('code')}, message: {full_data.get('data', 'Unknown error')}")
+
+        # 提取实际数据
+        if "data" not in full_data:
+            raise ValueError("TalorData API response missing data field")
+
+        data = full_data["data"]
+
+        # 检查搜索状态
         if "search_metadata" in data:
             status = data["search_metadata"].get("status", "")
             if status != "Success":
