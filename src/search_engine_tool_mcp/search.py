@@ -3,7 +3,7 @@
 import os
 from typing import List
 from .schemas import SearchResult, SearchResponse
-from .providers import YouProvider, TavilyProvider
+from .providers import YouProvider, TavilyProvider, SearXNGProvider
 
 
 async def web_search(
@@ -18,7 +18,7 @@ async def web_search(
 
     参数:
         query: 搜索查询字符串
-        provider: 使用的提供者（auto/you/tavily）
+        provider: 使用的提供者（auto/searxng/you/tavily）
         max_results: 返回结果的最大数量
         search_depth: 搜索深度（basic/advanced）- 仅 Tavily
         include_answer: 包含 AI 生成的答案 - 仅 Tavily
@@ -35,12 +35,47 @@ async def web_search(
     # 根据提供者执行搜索
     results: List[SearchResult] = []
 
-    if actual_provider == "you":
-        you = YouProvider()
-        results = await you.search(query, max_results)
-    elif actual_provider == "tavily":
-        tavily = TavilyProvider()  # 如果没有 API Key 会抛出 ValueError
-        results = await tavily.search(query, max_results, search_depth, include_answer)
+    if actual_provider == "searxng":
+        try:
+            searxng = SearXNGProvider()
+            results = await searxng.search(query, max_results)
+
+            # 如果 searxng 返回空结果且 provider=auto，fallback 到其他 provider
+            if provider == "auto" and len(results) == 0:
+                fallback_provider = _get_fallback_provider("searxng")
+                if fallback_provider:
+                    results = await _search_with_provider(
+                        fallback_provider,
+                        query,
+                        max_results,
+                        search_depth,
+                        include_answer,
+                    )
+                    actual_provider = fallback_provider
+        except Exception:
+            # searxng 失败时，如果 provider=auto，fallback 到其他 provider
+            if provider == "auto":
+                fallback_provider = _get_fallback_provider("searxng")
+                if fallback_provider:
+                    results = await _search_with_provider(
+                        fallback_provider,
+                        query,
+                        max_results,
+                        search_depth,
+                        include_answer,
+                    )
+                    actual_provider = fallback_provider
+                else:
+                    raise ValueError(
+                        "No search provider configured after SearXNG failure"
+                    )
+            else:
+                # provider=searxng 时直接抛出异常
+                raise
+    elif actual_provider in ["you", "tavily"]:
+        results = await _search_with_provider(
+            actual_provider, query, max_results, search_depth, include_answer
+        )
     else:
         raise ValueError(f"Unknown provider: {actual_provider}")
 
@@ -49,37 +84,71 @@ async def web_search(
     )
 
 
+async def _search_with_provider(
+    provider: str,
+    query: str,
+    max_results: int,
+    search_depth: str = "basic",
+    include_answer: bool = False,
+) -> List[SearchResult]:
+    """使用指定 provider 执行搜索"""
+    if provider == "you":
+        you = YouProvider()
+        return await you.search(query, max_results)
+    elif provider == "tavily":
+        tavily = TavilyProvider()
+        return await tavily.search(query, max_results, search_depth, include_answer)
+    else:
+        raise ValueError(f"Unknown provider in fallback: {provider}")
+
+
+def _get_fallback_provider(current: str) -> str:
+    """获取 fallback provider"""
+    if current == "searxng":
+        # searxng 失败时，优先 tavily，然后 you
+        if os.getenv("TAVILY_API_KEY"):
+            return "tavily"
+        elif os.getenv("YDC_API_KEY") or os.getenv("YOU_API_KEY"):
+            return "you"
+    return None
+
+
 def _resolve_provider(provider: str) -> str:
     """
     根据设置和环境解析提供者。
 
     参数:
-        provider: 提供者字符串（auto/you/tavily）
+        provider: 提供者字符串（auto/searxng/you/tavily）
 
     返回:
-        解析后的提供者名称（you/tavily）
+        解析后的提供者名称（searxng/you/tavily）
 
     异常:
         ValueError: 如果指定了无效的提供者或没有可用的 API Key
     """
-    if provider == "you":
+    if provider == "searxng":
+        # 如果没有 SEARXNG_BASE_URL，会在 SearXNGProvider 中失败
+        return "searxng"
+    elif provider == "you":
         # 如果没有 API Key，会在 YouProvider 中失败
         return "you"
     elif provider == "tavily":
         # 如果没有 API Key，会在 TavilyProvider 中失败
         return "tavily"
     elif provider == "auto":
-        # 自动选择：优先使用 You.com，然后是 Tavily
-        if os.getenv("YDC_API_KEY"):
-            return "you"
+        # 自动选择：优先 SearXNG，然后 Tavily，最后 You.com
+        if os.getenv("SEARXNG_BASE_URL"):
+            return "searxng"
         elif os.getenv("TAVILY_API_KEY"):
             return "tavily"
+        elif os.getenv("YDC_API_KEY") or os.getenv("YOU_API_KEY"):
+            return "you"
         else:
             raise ValueError(
-                "Either YDC_API_KEY or TAVILY_API_KEY is required. "
-                "Set one of these environment variables to use the search functionality."
+                "No search provider configured. Set one of these environment variables: "
+                "SEARXNG_BASE_URL, TAVILY_API_KEY, YDC_API_KEY, or YOU_API_KEY."
             )
     else:
         raise ValueError(
-            f"Invalid provider: {provider}. Must be 'auto', 'you', or 'tavily'"
+            f"Invalid provider: {provider}. Must be 'auto', 'searxng', 'you', or 'tavily'"
         )

@@ -42,14 +42,16 @@ async def web_search(
     include_answer: bool = False,
 ) -> dict:
     """
-    使用多个提供者（You.com/Tavily）搜索网络信息。
+    使用多个提供者（SearXNG/You.com/Tavily）搜索网络信息。
 
     参数:
         query: 搜索查询字符串
-        provider: 使用的提供者：auto（默认）、you（需要 YDC_API_KEY）或 tavily（需要 TAVILY_API_KEY）
+        provider: 使用的提供者：auto（默认）、searxng（免费，需要 SEARXNG_BASE_URL）、you（需要 YDC_API_KEY）或 tavily（需要 TAVILY_API_KEY）
         max_results: 返回结果的最大数量（1-20）
         search_depth: 搜索深度（仅 Tavily）：basic 或 advanced
         include_answer: 包含 AI 生成的答案（仅 Tavily）
+
+    Auto 优先级: SearXNG（免费）> Tavily > You.com
 
     返回:
         包含查询、提供者、计数和结果列表的搜索结果
@@ -77,13 +79,13 @@ async def web_extract(url: str, provider: str = "auto") -> dict:
     从指定 URL 提取内容。
 
     提供者选项：
-    - local: 免费本地提取，无需 API Key
+    - local: 免费本地提取，无需 API Key（推荐）
     - tavily: Tavily API 提取，需要 TAVILY_API_KEY
     - auto: 默认，优先使用 local，失败时自动回退到 Tavily（如果可用）
 
     参数:
         url: 要提取内容的 URL
-        provider: 使用的提供者：auto（默认）、local 或 tavily（需要 TAVILY_API_KEY）
+        provider: 使用的提供者：auto（默认）、local（免费）或 tavily（需要 TAVILY_API_KEY）
 
     返回:
         包含 url、content 和 provider 的提取结果

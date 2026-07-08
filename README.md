@@ -4,7 +4,7 @@ A Python MCP (Model Context Protocol) Server for web search and extraction with 
 
 ## Version
 
-Current version: **0.2.0**
+Current version: **0.3.0**
 
 ## Features
 
@@ -43,16 +43,18 @@ pip install -e .
 
 ### Environment Variables
 
+- **SEARXNG_BASE_URL** (recommended): Your SearXNG instance URL. Example: `http://127.0.0.1:8080`
 - **YDC_API_KEY** (recommended): Your You.com API key. Get it at [https://you.com/platform](https://you.com/platform).
 - **TAVILY_API_KEY** (optional): Your Tavily API key for advanced features and fallback extraction.
 
 **Auto Provider Selection Logic:**
 
 For **web_search**:
-- If both keys exist → prioritizes You.com
-- If only YDC_API_KEY → uses You.com
-- If only TAVILY_API_KEY → uses Tavily
-- If neither key → throws error
+- If SEARXNG_BASE_URL exists → uses SearXNG (free, self-hosted)
+  - If SearXNG fails or returns empty results → falls back to Tavily or You.com
+- If TAVILY_API_KEY exists → uses Tavily
+- If YDC_API_KEY or YOU_API_KEY exists → uses You.com
+- If none configured → throws error
 
 For **web_extract**:
 - Default provider is `local` (free, no API key required)
@@ -61,8 +63,27 @@ For **web_extract**:
   - Otherwise returns error
 - If provider="tavily" → requires `TAVILY_API_KEY`
 
+### Quick Configuration
+
+1. Copy the example configuration file:
 ```bash
-# Set You.com API key (recommended)
+cp .env.example .env
+```
+
+2. Edit the `.env` file and fill in your API keys:
+```bash
+YDC_API_KEY="your-ydc-api-key-here"
+TAVILY_API_KEY="your-tavily-api-key-here"
+SEARXNG_BASE_URL="http://127.0.0.1:8080"
+```
+
+### Or Set Environment Variables Manually
+
+```bash
+# Set SearXNG base URL (recommended for free self-hosted search)
+export SEARXNG_BASE_URL="http://127.0.0.1:8080"
+
+# Set You.com API key (alternative)
 export YDC_API_KEY="ydc-sk-your-api-key"
 
 # Or set Tavily API key (alternative)
@@ -79,6 +100,7 @@ Add to your MCP client configuration (e.g., Claude Desktop, Cursor, or other MCP
     "search-engine-tool": {
       "command": "search-engine-tool-mcp",
       "env": {
+        "SEARXNG_BASE_URL": "http://127.0.0.1:8080",
         "YDC_API_KEY": "ydc-sk-your-api-key",
         "TAVILY_API_KEY": "tvly-your-api-key"
       }
@@ -102,7 +124,7 @@ Search the web for information.
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
 | `query` | string | ✅ | - | Search query string |
-| `provider` | string | ❌ | `"auto"` | Provider to use: `"auto"`, `"jina"`, or `"tavily"` |
+| `provider` | string | ❌ | `"auto"` | Provider to use: `"auto"`, `"searxng"`, `"you"`, or `"tavily"` |
 | `max_results` | integer | ❌ | `5` | Maximum number of results (1-20) |
 | `search_depth` | string | ❌ | `"basic"` | Search depth: `"basic"` or `"advanced"` (Tavily only) |
 | `include_answer` | boolean | ❌ | `false` | Include AI-generated answer (Tavily only) |
@@ -160,11 +182,49 @@ Extract content from a specific URL.
 
 ### Provider Selection Logic
 
+- `provider="searxng"`: Always use SearXNG (requires `SEARXNG_BASE_URL`)
+  - ⚠️ **Limitations:**
+    - Requires self-hosted SearXNG instance
+    - Timeout: 15 seconds
+    - If returns empty results → throws error
 - `provider="you"`: Always use You.com (requires `YDC_API_KEY`)
 - `provider="tavily"`: Always use Tavily (requires `TAVILY_API_KEY`)
 - `provider="auto"`** (default):
-  - If `YDC_API_KEY` environment variable is set → use You.com
-  - Otherwise → use Tavily
+  - If `SEARXNG_BASE_URL` environment variable is set → use SearXNG
+    - If SearXNG fails or returns empty results → fallback to Tavily or You.com
+  - If `TAVILY_API_KEY` exists → use Tavily
+  - If `YDC_API_KEY` or `YOU_API_KEY` exists → use You.com
+  - Otherwise → throws error
+
+## SearXNG Setup
+
+SearXNG is a free, self-hosted metasearch engine that aggregates results from multiple search engines.
+
+### Installation
+
+1. **Using Docker (recommended)**:
+```bash
+docker run -d --name searxng -p 8080:8080 searxng/searxng:latest
+```
+
+2. **Manual installation**: Follow the [SearXNG documentation](https://github.com/searxng/searxng)
+
+### Configuration
+
+After setting up SearXNG, set the environment variable:
+
+```bash
+export SEARXNG_BASE_URL="http://127.0.0.1:8080"
+```
+
+### Features
+
+- ✅ **Free**: No API key required
+- ✅ **Privacy-focused**: No tracking
+- ✅ **Multiple engines**: Aggregates results from Google, Bing, DuckDuckGo, etc.
+- ✅ **Customizable**: Choose specific engines with `engines` parameter
+- ⚠️ **Self-hosted**: Requires running your own instance
+- ⚠️ **Timeout**: 15-second limit to prevent MCP hanging
 
 ## Development
 
