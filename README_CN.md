@@ -4,7 +4,7 @@
 
 ## 版本
 
-当前版本：**0.2.0**
+当前版本：**0.3.0**
 
 ## 功能特性
 
@@ -37,6 +37,7 @@ pip install -e .
 
 - **YDC_API_KEY**（推荐）：你的 You.com API Key。获取地址：[https://you.com/platform](https://you.com/platform)
 - **TAVILY_API_KEY**（可选）：你的 Tavily API Key，用于高级功能和回退提取。
+- **SEARXNG_BASE_URL**（可选）：SearXNG 实例的基础 URL。
 
 **自动提供者选择逻辑：**
 
@@ -53,12 +54,31 @@ pip install -e .
   - 否则返回错误
 - 如果 provider="tavily" → 需要 TAVILY_API_KEY
 
+### 快速配置
+
+1. 复制示例配置文件：
+```bash
+cp .env.example .env
+```
+
+2. 编辑 `.env` 文件，填入你的 API Keys：
+```bash
+YDC_API_KEY="your-ydc-api-key-here"
+TAVILY_API_KEY="your-tavily-api-key-here"
+SEARXNG_BASE_URL="http://127.0.0.1:8080"
+```
+
+### 或手动设置环境变量
+
 ```bash
 # 设置 You.com API Key（推荐）
 export YDC_API_KEY="ydc-sk-your-api-key"
 
 # 或设置 Tavily API Key（可选）
 export TAVILY_API_KEY="tvly-your-api-key"
+
+# 设置 SearXNG 实例 URL（可选）
+export SEARXNG_BASE_URL="http://127.0.0.1:8080"
 ```
 
 ### MCP 客户端配置

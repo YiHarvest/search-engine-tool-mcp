@@ -54,3 +54,19 @@ build/
 
 # uv
 uv.lock
+# Python cache/build artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local env
+.venv/
+.env
+.env.*
+!.env.example

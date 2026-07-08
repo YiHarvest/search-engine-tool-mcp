@@ -33,13 +33,16 @@ class YouProvider:
             "User-Agent": "SearchEngineToolMCP/0.2.0",
         }
 
-    async def search(self, query: str, max_results: int = 5) -> List[SearchResult]:
+    async def search(
+        self, query: str, max_results: int = 5, search_depth: str = "basic"
+    ) -> List[SearchResult]:
         """
         使用 You.com Search API 进行搜索。
 
         参数:
             query: 搜索查询字符串
             max_results: 返回结果的最大数量
+            search_depth: 搜索深度（basic/advanced）- You.com 目前不支持此参数，保留以兼容接口
 
         返回:
             SearchResult 对象列表
