@@ -6,4 +6,10 @@ from .searxng import SearXNGProvider
 from .talordata import TalorDataProvider
 from .local_extract import LocalExtractProvider
 
-__all__ = ["YouProvider", "TavilyProvider", "SearXNGProvider", "TalorDataProvider", "LocalExtractProvider"]
+__all__ = [
+    "YouProvider",
+    "TavilyProvider",
+    "SearXNGProvider",
+    "TalorDataProvider",
+    "LocalExtractProvider",
+]

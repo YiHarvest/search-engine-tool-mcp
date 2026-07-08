@@ -37,7 +37,11 @@ class TalorDataProvider:
         )
 
     async def search(
-        self, query: str, max_results: int = 5, include_answer: bool = False
+        self,
+        query: str,
+        max_results: int = 5,
+        search_depth: str = "basic",
+        include_answer: bool = False,
     ) -> Tuple[List[SearchResult], Optional[str]]:
         """
         使用 TalorData SERP API 进行搜索。
@@ -45,6 +49,7 @@ class TalorDataProvider:
         参数:
             query: 搜索查询字符串
             max_results: 返回结果的最大数量
+            search_depth: 搜索深度（basic/advanced）- TalorData 目前不支持此参数，保留以兼容接口
             include_answer: 是否包含 AI 生成的答案（从 ai_overview 提取）
 
         返回:
@@ -54,8 +59,10 @@ class TalorDataProvider:
             ValueError: API 请求失败或状态不成功时抛出
             httpx.HTTPError: 网络请求失败时抛出
         """
+        # TalorData 目前不支持 search_depth 参数，但保留接口兼容性
+        # 根据文档，TalorData 使用 engine 参数而不是 url 参数
         params = {
-            "url": "https://www.google.com/search",
+            "engine": "google",  # 指定搜索引擎
             "q": query,
             "json": "1",
         }

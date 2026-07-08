@@ -243,4 +243,4 @@ class TestWebSearch:
 
             await web_search("test query", provider="you", max_results=10)
 
-            you_instance.search.assert_called_once_with("test query", 10)
+            you_instance.search.assert_called_once_with("test query", 10, "basic")

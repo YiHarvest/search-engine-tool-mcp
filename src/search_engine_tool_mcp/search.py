@@ -76,7 +76,7 @@ async def web_search(
     elif actual_provider == "searxng":
         try:
             searxng = SearXNGProvider()
-            results = await searxng.search(query, max_results)
+            results = await searxng.search(query, max_results, search_depth)
 
             # 如果 searxng 返回空结果且 provider=auto，fallback 到其他 provider
             if provider == "auto" and len(results) == 0:
@@ -136,7 +136,7 @@ async def _search_with_provider(
     """使用指定 provider 执行搜索"""
     if provider == "you":
         you = YouProvider()
-        results = await you.search(query, max_results)
+        results = await you.search(query, max_results, search_depth)
         return results, None
     elif provider == "tavily":
         tavily = TavilyProvider()
@@ -150,7 +150,7 @@ async def _search_with_provider(
         return results, answer
     elif provider == "talordata":
         talordata = TalorDataProvider()
-        return await talordata.search(query, max_results, include_answer)
+        return await talordata.search(query, max_results, search_depth, include_answer)
     else:
         raise ValueError(f"Unknown provider in fallback: {provider}")
 
@@ -170,7 +170,9 @@ def _get_fallback_provider(current: str) -> str:
                 return "talordata"
             elif fallback == "tavily" and os.getenv("TAVILY_API_KEY"):
                 return "tavily"
-            elif fallback == "you" and (os.getenv("YDC_API_KEY") or os.getenv("YOU_API_KEY")):
+            elif fallback == "you" and (
+                os.getenv("YDC_API_KEY") or os.getenv("YOU_API_KEY")
+            ):
                 return "you"
     return None
 

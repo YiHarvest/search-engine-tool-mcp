@@ -19,10 +19,14 @@ class SearchResponse(BaseModel):
     """搜索 API 响应"""
 
     query: str = Field(..., description="原始搜索查询")
-    provider: str = Field(..., description="使用的提供者（talordata/searxng/you/tavily）")
+    provider: str = Field(
+        ..., description="使用的提供者（talordata/searxng/you/tavily）"
+    )
     count: int = Field(..., description="返回结果的数量")
     results: List[SearchResult] = Field(default_factory=list, description="搜索结果")
-    answer: Optional[str] = Field(default=None, description="AI 生成的答案（仅当 include_answer=True 时）")
+    answer: Optional[str] = Field(
+        default=None, description="AI 生成的答案（仅当 include_answer=True 时）"
+    )
 
 
 class ExtractResult(BaseModel):
@@ -37,7 +41,9 @@ class WebSearchParams(BaseModel):
     """web_search 工具的参数"""
 
     query: str = Field(..., description="搜索查询字符串")
-    provider: str = Field(default="auto", description="提供者: auto/talordata/searxng/you/tavily")
+    provider: str = Field(
+        default="auto", description="提供者: auto/talordata/searxng/you/tavily"
+    )
     max_results: int = Field(default=5, ge=1, le=20, description="最大结果数量")
     search_depth: str = Field(default="basic", description="搜索深度: basic/advanced")
     include_answer: bool = Field(default=False, description="包含 AI 生成的答案")

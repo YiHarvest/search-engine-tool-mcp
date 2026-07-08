@@ -2,10 +2,8 @@
 
 import pytest
 import os
-import httpx
 from unittest.mock import AsyncMock, patch, MagicMock
 from search_engine_tool_mcp.providers.talordata import TalorDataProvider
-from search_engine_tool_mcp.schemas import SearchResult
 
 
 @pytest.mark.asyncio
@@ -45,7 +43,9 @@ async def test_talordata_organic_field_mapping():
         mock_client.__aexit__ = AsyncMock(return_value=None)
         mock_client_class.return_value = mock_client
 
-        results, answer = await provider.search("test query", max_results=2)
+        results, answer = await provider.search(
+            "test query", max_results=2, search_depth="basic"
+        )
 
         assert len(results) == 2
         assert results[0].href == "https://example.com/1"
@@ -73,9 +73,7 @@ async def test_talordata_ai_overview_mapping():
                 "description": "Description",
             }
         ],
-        "ai_overview": {
-            "content": "AI generated answer for the query"
-        },
+        "ai_overview": {"content": "AI generated answer for the query"},
     }
 
     provider = TalorDataProvider(api_key="test_key")
@@ -91,7 +89,9 @@ async def test_talordata_ai_overview_mapping():
         mock_client.__aexit__ = AsyncMock(return_value=None)
         mock_client_class.return_value = mock_client
 
-        results, answer = await provider.search("test query", include_answer=True)
+        results, answer = await provider.search(
+            "test query", search_depth="basic", include_answer=True
+        )
 
         assert answer == "AI generated answer for the query"
 
@@ -130,7 +130,7 @@ async def test_talordata_empty_organic():
         mock_client.__aexit__ = AsyncMock(return_value=None)
         mock_client_class.return_value = mock_client
 
-        results, answer = await provider.search("test query")
+        results, answer = await provider.search("test query", search_depth="basic")
 
         assert len(results) == 0
         assert answer is None
@@ -158,7 +158,7 @@ async def test_talordata_status_not_success():
         mock_client_class.return_value = mock_client
 
         with pytest.raises(ValueError) as exc_info:
-            await provider.search("test query")
+            await provider.search("test query", search_depth="basic")
 
         assert "TalorData API returned status: Error" in str(exc_info.value)
 
@@ -221,7 +221,7 @@ async def test_talordata_description_fallback_to_snippet():
         mock_client.__aexit__ = AsyncMock(return_value=None)
         mock_client_class.return_value = mock_client
 
-        results, answer = await provider.search("test query")
+        results, answer = await provider.search("test query", search_depth="basic")
 
         assert results[0].abstract == "Snippet text"
 
@@ -238,9 +238,7 @@ async def test_talordata_no_answer_when_include_answer_false():
                 "description": "Description",
             }
         ],
-        "ai_overview": {
-            "content": "AI answer"
-        },
+        "ai_overview": {"content": "AI answer"},
     }
 
     provider = TalorDataProvider(api_key="test_key")
