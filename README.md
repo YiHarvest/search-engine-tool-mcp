@@ -4,7 +4,7 @@ A Python MCP (Model Context Protocol) Server for web search and extraction with 
 
 ## Version
 
-Current version: **0.3.0**
+Current version: **0.4.0**
 
 ## Features
 
