@@ -288,7 +288,7 @@ MIT 许可证
 
 ## 支持
 
-如有问题和功能请求，请使用 [GitHub Issues](https://github.com/YiHarvest/search-engine-tool/issues) 页面。
+如有问题和功能请求，请使用 [GitHub Issues](https://github.com/YiHarvest/search-engine-tool-mcp/issues) 页面。
 
 ## 更新日志
 

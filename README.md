@@ -393,4 +393,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## Support
 
-For issues and feature requests, please use the [GitHub Issues](https://github.com/YiHarvest/search-engine-tool/issues) page.
+For issues and feature requests, please use the [GitHub Issues](https://github.com/YiHarvest/search-engine-tool-mcp/issues) page.
