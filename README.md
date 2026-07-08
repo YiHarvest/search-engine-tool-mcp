@@ -109,7 +109,7 @@ Add to your MCP client configuration (e.g., Claude Desktop, Cursor, or other MCP
       "command": "uvx",
       "args": [
         "--from",
-        "search-engine-tool-mcp==0.4.0",
+        "search-engine-tool-mcp==0.4.1",
         "search-engine-tool-mcp"
       ],
       "env": {

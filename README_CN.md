@@ -89,10 +89,17 @@ export SEARXNG_BASE_URL="http://127.0.0.1:8080"
 {
   "mcpServers": {
     "search-engine-tool": {
-      "command": "search-engine-tool-mcp",
+      "command": "uvx",
+      "args": [
+        "--from",
+        "search-engine-tool-mcp==0.4.1",
+        "search-engine-tool-mcp"
+      ],
       "env": {
-        "YDC_API_KEY": "ydc-sk-your-api-key",
-        "TAVILY_API_KEY": "tvly-your-api-key"
+        "TALORDATA_API_KEY": "your-talordata-api-key",
+        "TALORDATA_BASE_URL": "https://serpapi.talordata.net/serp/v1/request",
+        "TALORDATA_TRIAL_EXPIRES_AT": "2026-07-15T06:05:25+08:00",
+        "SEARXNG_BASE_URL": "http://127.0.0.1:8080"
       }
     }
   }
