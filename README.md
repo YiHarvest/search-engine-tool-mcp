@@ -4,7 +4,7 @@ A Python MCP (Model Context Protocol) Server for web search and extraction with 
 
 ## Version
 
-Current version: **0.4.2**
+Current version: **0.4.3**
 
 ## Features
 
@@ -18,19 +18,19 @@ Current version: **0.4.2**
 
 ### From PyPI (Recommended)
 
-✅ **Latest version 0.4.2 is now available on PyPI!**
+✅ **Latest version 0.4.3 is now available on PyPI!**
 
-**PyPI Package Page:** https://pypi.org/project/search-engine-tool-mcp/0.4.2/
+**PyPI Package Page:** https://pypi.org/project/search-engine-tool-mcp/0.4.3/
 
 ```bash
 # Using pip
-pip install search-engine-tool-mcp==0.4.2
+pip install search-engine-tool-mcp==0.4.3
 
 # Or using uv (recommended)
-uv pip install search-engine-tool-mcp==0.4.2
+uv pip install search-engine-tool-mcp==0.4.3
 
 # Or using uvx (no installation required)
-uvx --from search-engine-tool-mcp==0.4.2 search-engine-tool-mcp
+uvx --from search-engine-tool-mcp==0.4.3 search-engine-tool-mcp
 ```
 
 ### From Source
@@ -58,12 +58,12 @@ pip install -e .
 **Auto Provider Selection Logic:**
 
 For **web_search**:
-- If SEARXNG_BASE_URL exists → uses SearXNG (free, self-hosted)
-  - If SearXNG fails or returns empty results → falls back to TalorData, Tavily, or You.com
 - If TALORDATA_API_KEY exists → uses TalorData (SERP API provider)
   - If TalorData fails or returns empty results → falls back to Tavily or You.com
-- If TAVILY_API_KEY exists → uses Tavily
-- If YDC_API_KEY or YOU_API_KEY exists → uses You.com
+- Otherwise, if SEARXNG_BASE_URL exists → uses SearXNG (free, self-hosted)
+  - If SearXNG fails or returns empty results → falls back to TalorData, Tavily, or You.com
+- Otherwise, if YDC_API_KEY or YOU_API_KEY exists → uses You.com
+- Otherwise, if TAVILY_API_KEY exists → uses Tavily
 - If none configured → throws error
 
 For **web_extract**:
@@ -105,9 +105,64 @@ export YDC_API_KEY="ydc-sk-your-api-key"
 export TAVILY_API_KEY="tvly-your-api-key"
 ```
 
+### Run SearXNG Locally
+
+`SEARXNG_BASE_URL` is not an API key. It is the URL of a SearXNG instance that you run. This MCP server uses SearXNG's JSON search endpoint, so `json` must be enabled in `settings.yml`.
+
+1. Create the configuration directory and `searxng/settings.yml`:
+
+```bash
+mkdir -p searxng
+```
+
+```yaml
+# searxng/settings.yml
+use_default_settings: true
+
+search:
+  formats:
+    - html
+    - json
+
+server:
+  # Replace this even for local use: openssl rand -hex 32
+  secret_key: "replace-with-a-random-secret"
+  limiter: false
+  image_proxy: true
+```
+
+2. Start a SearXNG container bound only to localhost:
+
+```bash
+docker run -d \
+  --name searxng \
+  --restart unless-stopped \
+  -p 127.0.0.1:8080:8080 \
+  -v "$(pwd)/searxng:/etc/searxng:rw" \
+  docker.io/searxng/searxng:latest
+```
+
+3. Verify the JSON endpoint:
+
+```bash
+curl "http://127.0.0.1:8080/search?q=hello&format=json"
+```
+
+After it returns JSON containing `results`, configure:
+
+```bash
+SEARXNG_BASE_URL="http://127.0.0.1:8080"
+```
+
+Use `docker stop searxng` and `docker start searxng` to stop and restart it. For production or public deployment, add a reverse proxy, HTTPS, access controls, and a random `secret_key`; see the [official SearXNG container documentation](https://docs.searxng.org/admin/installation-docker.html).
+
 ### MCP Client Configuration
 
-Add to your MCP client configuration (e.g., Claude Desktop, Cursor, or other MCP-compatible clients):
+Credentials must be passed to the MCP server process as environment variables. All values below are placeholders. Keep only the providers you use, and never commit real credentials to Git.
+
+#### Trae (JSON)
+
+Add or import the following configuration in Trae's MCP settings:
 
 ```json
 {
@@ -116,19 +171,47 @@ Add to your MCP client configuration (e.g., Claude Desktop, Cursor, or other MCP
       "command": "uvx",
       "args": [
         "--from",
-        "search-engine-tool-mcp==0.4.2",
+        "search-engine-tool-mcp==0.4.3",
         "search-engine-tool-mcp"
       ],
       "env": {
         "TALORDATA_API_KEY": "your-talordata-api-key",
         "TALORDATA_BASE_URL": "https://serpapi.talordata.net/serp/v1/request",
-        "TALORDATA_TRIAL_EXPIRES_AT": "2026-07-15T06:05:25+08:00",
-        "SEARXNG_BASE_URL": "http://127.0.0.1:8080"
+        "SEARXNG_BASE_URL": "http://127.0.0.1:8080",
+        "YDC_API_KEY": "your-you-api-key",
+        "TAVILY_API_KEY": "tvly-your-tavily-api-key"
       }
     }
   }
 }
 ```
+
+Restart or refresh the MCP server after saving. If Trae and SearXNG run on different hosts or container networks, `127.0.0.1` refers to the environment running Trae/the MCP process; replace it with a SearXNG URL reachable from that environment.
+
+#### Codex (TOML)
+
+Codex CLI and the Codex IDE extension share `config.toml`. Add this to the user configuration at `~/.codex/config.toml`, or to `.codex/config.toml` in a trusted project:
+
+```toml
+[mcp_servers.search-engine-tool]
+command = "uvx"
+args = [
+  "--from",
+  "search-engine-tool-mcp==0.4.3",
+  "search-engine-tool-mcp",
+]
+startup_timeout_sec = 30
+tool_timeout_sec = 60
+
+[mcp_servers.search-engine-tool.env]
+TALORDATA_API_KEY = "your-talordata-api-key"
+TALORDATA_BASE_URL = "https://serpapi.talordata.net/serp/v1/request"
+SEARXNG_BASE_URL = "http://127.0.0.1:8080"
+YDC_API_KEY = "your-you-api-key"
+TAVILY_API_KEY = "tvly-your-tavily-api-key"
+```
+
+Restart Codex, then run `codex mcp list` or use `/mcp` in a Codex session to verify the connection. See the [official Codex MCP documentation](https://developers.openai.com/codex/mcp/) for configuration options.
 
 ## Usage
 
@@ -211,13 +294,9 @@ Extract content from a specific URL.
 - `provider="you"`: Always use You.com (requires `YDC_API_KEY`)
 - `provider="tavily"`: Always use Tavily (requires `TAVILY_API_KEY`)
 - `provider="auto"`** (default):
-  - If `SEARXNG_BASE_URL` environment variable is set → use SearXNG
-    - If SearXNG fails or returns empty results → fallback to TalorData, Tavily, or You.com
-  - If `TALORDATA_API_KEY` exists → use TalorData
-    - If TalorData fails or returns empty results → fallback to Tavily or You.com
-  - If `TAVILY_API_KEY` exists → use Tavily
-  - If `YDC_API_KEY` or `YOU_API_KEY` exists → use You.com
-  - Otherwise → throws error
+  - Initial selection order: TalorData → SearXNG → You.com → Tavily
+  - On failure or empty results, switches through the configured fallback chain for the current provider
+  - If no provider is configured → throws an error
 
 ## TalorData SERP API
 

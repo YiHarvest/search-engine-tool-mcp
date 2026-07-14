@@ -1,10 +1,10 @@
 # 搜索引擎工具 MCP
 
-一个支持多提供者的 Python MCP（模型上下文协议）服务器，用于网络搜索和内容提取。
+一个支持多提供者的 Python MCP（模型上下文协议）服务器，用于网络搜索和内容提取，可用于 Codex、Trae 及其他支持 STDIO MCP 的客户端。
 
 ## 版本
 
-当前版本：**0.4.2**
+当前版本：**0.4.3**
 
 ## 功能特性
 
@@ -19,19 +19,19 @@
 
 ### 从 PyPI 安装（推荐）
 
-✅ **最新版本 0.4.2 已发布到 PyPI！**
+✅ **最新版本 0.4.3 已发布到 PyPI！**
 
-**PyPI 包页面：** https://pypi.org/project/search-engine-tool-mcp/0.4.2/
+**PyPI 包页面：** https://pypi.org/project/search-engine-tool-mcp/0.4.3/
 
 ```bash
 # 使用 pip 安装
-pip install search-engine-tool-mcp==0.4.2
+pip install search-engine-tool-mcp==0.4.3
 
 # 或使用 uv 安装（推荐）
-uv pip install search-engine-tool-mcp==0.4.2
+uv pip install search-engine-tool-mcp==0.4.3
 
 # 或使用 uvx 直接运行（无需安装）
-uvx --from search-engine-tool-mcp==0.4.2 search-engine-tool-mcp
+uvx --from search-engine-tool-mcp==0.4.3 search-engine-tool-mcp
 ```
 
 ### 从源码安装
@@ -46,17 +46,19 @@ pip install -e .
 
 ### 环境变量
 
-- **YDC_API_KEY**（推荐）：你的 You.com API Key。获取地址：[https://you.com/platform](https://you.com/platform)
+- **SEARXNG_BASE_URL**（推荐）：你的自托管 SearXNG 实例地址，例如 `http://127.0.0.1:8080`。
+- **TALORDATA_API_KEY**（可选）：你的 TalorData SERP API Key，仅用于 `web_search`。
+- **YDC_API_KEY**（可选）：你的 You.com API Key。获取地址：[https://you.com/platform](https://you.com/platform)
 - **TAVILY_API_KEY**（可选）：你的 Tavily API Key，用于高级功能和回退提取。
-- **SEARXNG_BASE_URL**（可选）：SearXNG 实例的基础 URL。
 
 **自动提供者选择逻辑：**
 
 对于 **web_search**：
-- 如果两个 Key 都存在 → 优先使用 You.com
-- 如果只有 YDC_API_KEY → 使用 You.com
-- 如果只有 TAVILY_API_KEY → 使用 Tavily
-- 如果都没有 → 抛出错误
+- 如果存在 `TALORDATA_API_KEY` → 优先使用 TalorData
+- 否则如果存在 `SEARXNG_BASE_URL` → 使用 SearXNG
+- 否则如果存在 `YDC_API_KEY` 或 `YOU_API_KEY` → 使用 You.com
+- 否则如果存在 `TAVILY_API_KEY` → 使用 Tavily
+- 当前提供者失败或返回空结果时，按照可用配置自动回退；如果均未配置 → 抛出错误
 
 对于 **web_extract**：
 - 默认提供者是 `local`（免费，无需 API Key）
@@ -77,12 +79,13 @@ cp .env.example .env
 YDC_API_KEY="your-ydc-api-key-here"
 TAVILY_API_KEY="your-tavily-api-key-here"
 SEARXNG_BASE_URL="http://127.0.0.1:8080"
+TALORDATA_API_KEY="your-talordata-api-key-here"
 ```
 
 ### 或手动设置环境变量
 
 ```bash
-# 设置 You.com API Key（推荐）
+# 设置 You.com API Key（可选）
 export YDC_API_KEY="ydc-sk-your-api-key"
 
 # 或设置 Tavily API Key（可选）
@@ -90,11 +93,109 @@ export TAVILY_API_KEY="tvly-your-api-key"
 
 # 设置 SearXNG 实例 URL（可选）
 export SEARXNG_BASE_URL="http://127.0.0.1:8080"
+
+# 设置 TalorData API Key（可选，仅用于搜索）
+export TALORDATA_API_KEY="your-talordata-api-key"
 ```
+
+### 本地部署 SearXNG（推荐，免费）
+
+SearXNG 是一个免费的开源搜索引擎，支持多引擎聚合搜索。以下是快速部署步骤：
+
+#### 1. 创建配置文件
+
+```bash
+mkdir -p /tmp/searxng
+```
+
+创建 `/tmp/searxng/settings.yml`：
+
+```yaml
+use_default_settings: true
+
+search:
+  safe_search: 0
+  formats:
+    - html
+    - json
+
+server:
+  port: 8080
+  bind_address: "0.0.0.0"
+  secret_key: "change_this_to_unique_value"
+  limiter: false
+  image_proxy: false
+  http_protocol_headers:
+    X-Forwarded-For: "127.0.0.1"
+    X-Real-IP: "127.0.0.1"
+
+outgoing:
+  request_timeout: 10.0
+  max_request_timeout: 15.0
+
+engines:
+  - name: google
+    engine: google
+  - name: bing
+    engine: bing
+  - name: duckduckgo
+    engine: duckduckgo
+  - name: brave
+    engine: brave
+```
+
+#### 2. 启动容器
+
+```bash
+docker run -d \
+  --name searxng \
+  --restart unless-stopped \
+  --network host \
+  -v /tmp/searxng/settings.yml:/etc/searxng/settings.yml \
+  searxng/searxng:latest
+```
+
+#### 3. 验证服务
+
+```bash
+# 等待服务启动（约5秒）
+sleep 5
+
+# 测试 JSON API
+curl -s "http://127.0.0.1:8080/search?q=test&format=json" | jq '.results | length'
+```
+
+如果返回数字（如 10-50），说明配置成功。
+
+#### 4. 设置环境变量
+
+```bash
+SEARXNG_BASE_URL="http://127.0.0.1:8080"
+```
+
+#### 常见问题
+
+**问题：返回空结果或所有引擎不可用**
+
+- **原因**：容器内配置了错误的代理（如 `http://127.0.0.1:7890`）
+- **解决**：确保配置文件中**没有** `HTTP_PROXY` 或 `HTTPS_PROXY` 环境变量
+
+**问题：403 Forbidden**
+
+- **原因**：缺少必要的 HTTP 头配置
+- **解决**：确保 `settings.yml` 中包含 `http_protocol_headers` 配置
+
+#### 生产环境部署
+
+生产或公网部署请使用反向代理、HTTPS、访问控制和随机 `secret_key`。详细部署方式参见 [SearXNG 官方文档](https://docs.searxng.org/admin/installation-docker.html)。
 
 ### MCP 客户端配置
 
-添加到你的 MCP 客户端配置（例如 Claude Desktop、Cursor 或其他 MCP 兼容客户端）：
+密钥必须通过 MCP 服务进程的环境变量传入。下面所有值均为占位符，请只填写你实际使用的提供者；不要把真实密钥提交到 Git。
+
+#### Trae（JSON）
+
+在 Trae 的 MCP 设置中添加或导入以下配置：
 
 ```json
 {
@@ -103,19 +204,47 @@ export SEARXNG_BASE_URL="http://127.0.0.1:8080"
       "command": "uvx",
       "args": [
         "--from",
-        "search-engine-tool-mcp==0.4.2",
+        "search-engine-tool-mcp==0.4.3",
         "search-engine-tool-mcp"
       ],
       "env": {
         "TALORDATA_API_KEY": "your-talordata-api-key",
         "TALORDATA_BASE_URL": "https://serpapi.talordata.net/serp/v1/request",
-        "TALORDATA_TRIAL_EXPIRES_AT": "2026-07-15T06:05:25+08:00",
-        "SEARXNG_BASE_URL": "http://127.0.0.1:8080"
+        "SEARXNG_BASE_URL": "http://127.0.0.1:8080",
+        "YDC_API_KEY": "your-you-api-key",
+        "TAVILY_API_KEY": "tvly-your-tavily-api-key"
       }
     }
   }
 }
 ```
+
+保存后重启或刷新 MCP 服务。如果 Trae 与 SearXNG 不在同一台主机或容器网络中，`127.0.0.1` 指向的是 Trae/MCP 进程所在环境，需要改成该环境可访问的 SearXNG 地址。
+
+#### Codex（TOML）
+
+Codex CLI 和 Codex IDE 扩展共用 `config.toml`。将下面内容添加到用户配置 `~/.codex/config.toml`，或者可信项目的 `.codex/config.toml`：
+
+```toml
+[mcp_servers.search-engine-tool]
+command = "uvx"
+args = [
+  "--from",
+  "search-engine-tool-mcp==0.4.3",
+  "search-engine-tool-mcp",
+]
+startup_timeout_sec = 30
+tool_timeout_sec = 60
+
+[mcp_servers.search-engine-tool.env]
+TALORDATA_API_KEY = "your-talordata-api-key"
+TALORDATA_BASE_URL = "https://serpapi.talordata.net/serp/v1/request"
+SEARXNG_BASE_URL = "http://127.0.0.1:8080"
+YDC_API_KEY = "your-you-api-key"
+TAVILY_API_KEY = "tvly-your-tavily-api-key"
+```
+
+重启 Codex 后，可运行 `codex mcp list`，或在 Codex 会话中使用 `/mcp` 检查连接。Codex 的配置格式和可选项参见 [Codex MCP 官方文档](https://developers.openai.com/codex/mcp/)。
 
 ## 使用方法
 
@@ -132,10 +261,10 @@ MCP 服务器提供两个工具：
 | 参数 | 类型 | 必需 | 默认值 | 描述 |
 |------|------|------|--------|------|
 | `query` | string | ✅ | - | 搜索查询字符串 |
-| `provider` | string | ❌ | `"auto"` | 使用的提供者：`"auto"`、`"you"` 或 `"tavily"` |
+| `provider` | string | ❌ | `"auto"` | 使用的提供者：`"auto"`、`"searxng"`、`"talordata"`、`"you"` 或 `"tavily"` |
 | `max_results` | integer | ❌ | `5` | 最大结果数量（1-20） |
 | `search_depth` | string | ❌ | `"basic"` | 搜索深度：`"basic"` 或 `"advanced"`（仅 Tavily） |
-| `include_answer` | boolean | ❌ | `false` | 包含 AI 生成的答案（仅 Tavily） |
+| `include_answer` | boolean | ❌ | `false` | 包含 AI 生成的答案（仅 TalorData 和 Tavily） |
 
 **响应示例：**
 
@@ -191,11 +320,13 @@ MCP 服务器提供两个工具：
 
 ### 提供者选择逻辑
 
+- `provider="searxng"`：始终使用 SearXNG（需要 `SEARXNG_BASE_URL`）
+- `provider="talordata"`：始终使用 TalorData（需要 `TALORDATA_API_KEY`，仅支持搜索）
 - `provider="you"`：始终使用 You.com（需要 `YDC_API_KEY`）
 - `provider="tavily"`：始终使用 Tavily（需要 `TAVILY_API_KEY`）
 - `provider="local"`：始终使用本地提取（免费，无需 API Key）
-- `provider="auto"`**（默认）：
-  - **web_search**：如果 `YDC_API_KEY` 环境变量存在 → 使用 You.com，否则 → 使用 Tavily
+- `provider="auto"` **（默认）**：
+  - **web_search**：初始选择顺序为 TalorData → SearXNG → You.com → Tavily；失败或空结果时按当前提供者的可用回退链切换
   - **web_extract**：优先使用 local，失败时自动回退到 Tavily（如果 `TAVILY_API_KEY` 可用）
 
 ## 开发
